@@ -1,0 +1,70 @@
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+/** Saves and loads library data in simple text files so data is not lost when the program closes. */
+public class DataStore {
+    private final Path dir;
+
+    public DataStore(String folderName) {
+        this.dir = Paths.get(folderName);
+    }
+
+    private List<String> readLines(String file) throws IOException {
+        Path path = dir.resolve(file);
+        if (!Files.exists(path)) {
+            return new ArrayList<>();
+        }
+        return Files.readAllLines(path);
+    }
+
+    private void writeLines(String file, List<String> lines) throws IOException {
+        Files.createDirectories(dir);
+        Files.write(dir.resolve(file), lines);
+    }
+
+    public List<Book> loadBooks() throws IOException {
+        List<Book> list = new ArrayList<>();
+        for (String line : readLines("books.txt")) {
+            if (!line.isBlank()) list.add(Book.fromLine(line));
+        }
+        return list;
+    }
+
+    public List<Member> loadMembers() throws IOException {
+        List<Member> list = new ArrayList<>();
+        for (String line : readLines("members.txt")) {
+            if (!line.isBlank()) list.add(Member.fromLine(line));
+        }
+        return list;
+    }
+
+    public List<IssueRecord> loadRecords() throws IOException {
+        List<IssueRecord> list = new ArrayList<>();
+        for (String line : readLines("records.txt")) {
+            if (!line.isBlank()) list.add(IssueRecord.fromLine(line));
+        }
+        return list;
+    }
+
+    public void saveBooks(List<Book> books) throws IOException {
+        List<String> lines = new ArrayList<>();
+        for (Book b : books) lines.add(b.toLine());
+        writeLines("books.txt", lines);
+    }
+
+    public void saveMembers(List<Member> members) throws IOException {
+        List<String> lines = new ArrayList<>();
+        for (Member m : members) lines.add(m.toLine());
+        writeLines("members.txt", lines);
+    }
+
+    public void saveRecords(List<IssueRecord> records) throws IOException {
+        List<String> lines = new ArrayList<>();
+        for (IssueRecord r : records) lines.add(r.toLine());
+        writeLines("records.txt", lines);
+    }
+}

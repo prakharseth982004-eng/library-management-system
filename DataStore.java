@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -24,6 +25,22 @@ public class DataStore {
     private void writeLines(String file, List<String> lines) throws IOException {
         Files.createDirectories(dir);
         Files.write(dir.resolve(file), lines);
+    }
+
+    private void appendLine(String file, String line) throws IOException {
+        Files.createDirectories(dir);
+        Files.write(dir.resolve(file), java.util.Collections.singletonList(line),
+                StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+    }
+
+    /** Adds one book at the end of the file without rewriting the whole file. */
+    public void appendBook(Book book) throws IOException {
+        appendLine("books.txt", book.toLine());
+    }
+
+    /** Adds one member at the end of the file without rewriting the whole file. */
+    public void appendMember(Member member) throws IOException {
+        appendLine("members.txt", member.toLine());
     }
 
     public List<Book> loadBooks() throws IOException {

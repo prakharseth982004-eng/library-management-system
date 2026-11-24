@@ -23,6 +23,9 @@ public class LibraryService {
             this.records = store.loadRecords();
         } catch (IOException e) {
             throw new LibraryException("Could not load saved data: " + e.getMessage());
+        } catch (RuntimeException e) {
+            throw new LibraryException("Saved data files are damaged or in a wrong format. "
+                    + "Please fix or delete the data folder.");
         }
     }
 
@@ -30,10 +33,16 @@ public class LibraryService {
         return text == null ? "" : text.replace("|", " ").trim();
     }
 
-    private void save() throws LibraryException {
+    private void saveBooks() throws LibraryException {
         try {
             store.saveBooks(books);
-            store.saveMembers(members);
+        } catch (IOException e) {
+            throw new LibraryException("Could not save data: " + e.getMessage());
+        }
+    }
+
+    private void saveRecords() throws LibraryException {
+        try {
             store.saveRecords(records);
         } catch (IOException e) {
             throw new LibraryException("Could not save data: " + e.getMessage());
@@ -49,7 +58,11 @@ public class LibraryService {
         int id = books.isEmpty() ? 1 : books.get(books.size() - 1).getId() + 1;
         Book book = new Book(id, title, author, true);
         books.add(book);
-        save();
+        try {
+            store.appendBook(book);
+        } catch (IOException e) {
+            throw new LibraryException("Could not save data: " + e.getMessage());
+        }
         return book;
     }
 
@@ -61,7 +74,11 @@ public class LibraryService {
         int id = members.isEmpty() ? 1 : members.get(members.size() - 1).getId() + 1;
         Member member = new Member(id, name);
         members.add(member);
-        save();
+        try {
+            store.appendMember(member);
+        } catch (IOException e) {
+            throw new LibraryException("Could not save data: " + e.getMessage());
+        }
         return member;
     }
 
@@ -99,7 +116,8 @@ public class LibraryService {
         }
         book.setAvailable(false);
         records.add(new IssueRecord(bookId, memberId, date, null));
-        save();
+        saveBooks();
+        saveRecords();
     }
 
     /** Returns the fine to pay (0 if the book is returned on time). */
@@ -107,11 +125,16 @@ public class LibraryService {
         Book book = findBook(bookId);
         for (IssueRecord r : records) {
             if (r.isActive() && r.getBookId() == bookId) {
+                if (date.isBefore(r.getIssueDate())) {
+                    throw new LibraryException("Return date cannot be before the issue date ("
+                            + r.getIssueDate() + ").");
+                }
                 r.setReturnDate(date);
                 book.setAvailable(true);
                 long daysKept = ChronoUnit.DAYS.between(r.getIssueDate(), date);
                 long lateDays = Math.max(0, daysKept - LOAN_DAYS);
-                save();
+                saveBooks();
+                saveRecords();
                 return (int) (lateDays * FINE_PER_DAY);
             }
         }

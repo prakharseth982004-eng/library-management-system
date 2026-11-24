@@ -8,6 +8,9 @@ public class Main {
     private static int readInt(String prompt) {
         while (true) {
             System.out.print(prompt);
+            if (!sc.hasNextLine()) {
+                return 0; // input closed, so exit safely
+            }
             String line = sc.nextLine().trim();
             try {
                 return Integer.parseInt(line);
@@ -19,7 +22,7 @@ public class Main {
 
     private static String readText(String prompt) {
         System.out.print(prompt);
-        return sc.nextLine();
+        return sc.hasNextLine() ? sc.nextLine() : "";
     }
 
     private static void printMenu() {

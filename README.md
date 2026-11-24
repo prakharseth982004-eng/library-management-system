@@ -18,7 +18,8 @@ A console-based Library Management System built with Core Java as the practical 
 | `DataStore.java` | Saving and loading data from files |
 | `LibraryException.java` | Custom exception for clear error messages |
 | `Main.java` | Menu and user input |
-| `LibraryTests.java` | Test cases for the main logic |
+| `LibraryTests.java` | 31 automated test cases |
+| `TESTING.md` | Test documentation and bug report |
 
 ## How to run
 ```
@@ -30,6 +31,7 @@ java Main
 ```
 java LibraryTests
 ```
+31 automated tests cover unit, integration, edge case and performance scenarios. See [TESTING.md](TESTING.md) for the test cases, bugs found and fixed, and known limitations.
 
 ## Concepts used
 OOP (encapsulation, abstraction), ArrayList, custom exceptions, file handling with java.nio, java.time.LocalDate, input validation, layered design.

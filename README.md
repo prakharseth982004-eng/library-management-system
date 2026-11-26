@@ -9,6 +9,8 @@ A console-based Library Management System built with Core Java as the practical 
 - Search books by title or author
 - View all currently issued books
 - Data is saved in text files, so it is not lost when the program closes
+- Backup of all data from the menu
+- Log file for monitoring (`logs` folder)
 
 ## Project structure
 | File | Responsibility |
@@ -20,6 +22,8 @@ A console-based Library Management System built with Core Java as the practical 
 | `Main.java` | Menu and user input |
 | `LibraryTests.java` | 31 automated test cases |
 | `TESTING.md` | Test documentation and bug report |
+| `DEPLOYMENT.md` | Build, release, monitoring, backup and rollback guide |
+| `.github/workflows/ci-cd.yml` | GitHub Actions pipeline: build, test, staging check, release |
 
 ## How to run
 ```
@@ -27,11 +31,18 @@ javac *.java
 java Main
 ```
 
+## Download and run the released version
+Open the **Releases** section of this repository, download `library-management-system.jar` and run:
+```
+java -jar library-management-system.jar
+```
+See [DEPLOYMENT.md](DEPLOYMENT.md) for settings, monitoring and rollback.
+
 ## How to run the tests
 ```
 java LibraryTests
 ```
-31 automated tests cover unit, integration, edge case and performance scenarios. See [TESTING.md](TESTING.md) for the test cases, bugs found and fixed, and known limitations.
+33 automated tests cover unit, integration, edge case and performance scenarios. See [TESTING.md](TESTING.md) for the test cases, bugs found and fixed, and known limitations.
 
 ## Concepts used
 OOP (encapsulation, abstraction), ArrayList, custom exceptions, file handling with java.nio, java.time.LocalDate, input validation, layered design.

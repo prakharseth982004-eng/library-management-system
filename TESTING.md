@@ -7,7 +7,7 @@ This document records how the Library Management System was tested, the problems
 javac *.java
 java LibraryTests
 ```
-Expected last line: `Total: 31 | Passed: 31 | Failed: 0`
+Expected last line: `Total: 33 | Passed: 33 | Failed: 0`
 
 ## Test strategy
 | Type | What it checks | Tests |
@@ -15,6 +15,7 @@ Expected last line: `Total: 31 | Passed: 31 | Failed: 0`
 | Unit tests | One class or method alone (data classes, validation, search) | 11 |
 | Integration tests | Service, data classes and file storage working together (issue, return, fine, save and reload) | 12 |
 | Edge case and system tests | Boundary values and wrong data (day 7 and day 8, damaged files, special characters) | 6 |
+| Operations tests | Backup and restore of data | 2 |
 | Performance tests | Speed and correctness with 2000 books | 2 |
 | Manual user tests | Running the menu with normal and wrong inputs | done by hand |
 
@@ -50,6 +51,9 @@ Expected last line: `Total: 31 | Passed: 31 | Failed: 0`
 | E3b | Book status after rejected return | Still issued |
 | E4 | Damaged data file | Clear error, no crash |
 | E5 | Title with `\|` saved and reloaded | Correct title |
+| D1 | Backup | Copies of all data files are created |
+| D2 | Restore from a backup | Data from backup time is loaded |
+| D2 | Restore from a backup | Data from backup time is loaded |
 | P1 | Add 2000 books | Less than 3 seconds |
 | P2 | Reload 2000 books | All 2000 present |
 

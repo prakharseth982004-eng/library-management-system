@@ -1,6 +1,9 @@
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -41,6 +44,20 @@ public class DataStore {
     /** Adds one member at the end of the file without rewriting the whole file. */
     public void appendMember(Member member) throws IOException {
         appendLine("members.txt", member.toLine());
+    }
+
+    /** Copies all data files into a new time-stamped folder inside the data folder. */
+    public Path backup() throws IOException {
+        String stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+        Path target = dir.resolve("backups").resolve(stamp);
+        Files.createDirectories(target);
+        for (String file : new String[] {"books.txt", "members.txt", "records.txt"}) {
+            Path source = dir.resolve(file);
+            if (Files.exists(source)) {
+                Files.copy(source, target.resolve(file), StandardCopyOption.REPLACE_EXISTING);
+            }
+        }
+        return target;
     }
 
     public List<Book> loadBooks() throws IOException {

@@ -1,9 +1,46 @@
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.FileHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 public class Main {
+    private static final String VERSION = "1.0.0";
+    private static final Logger LOG = Logger.getLogger("library");
     private static final Scanner sc = new Scanner(System.in);
+
+    /** Reads a setting from an environment variable, or uses a default value. */
+    private static String setting(String name, String defaultValue) {
+        String value = System.getenv(name);
+        return (value == null || value.isBlank()) ? defaultValue : value;
+    }
+
+    /** Writes log messages to a file; files rotate after 1 MB and 3 old files are kept. */
+    private static void setupLogging(String logFolder) {
+        try {
+            Files.createDirectories(Paths.get(logFolder));
+            FileHandler handler = new FileHandler(logFolder + "/library-%g.log", 1_000_000, 3, true);
+            handler.setFormatter(new Formatter() {
+                @Override
+                public String format(LogRecord r) {
+                    return String.format("%1$tF %1$tT [%2$s] %3$s%n", new Date(r.getMillis()),
+                            r.getLevel(), r.getMessage());
+                }
+            });
+            LOG.setUseParentHandlers(false);
+            LOG.setLevel(Level.INFO);
+            LOG.addHandler(handler);
+        } catch (IOException e) {
+            System.out.println("Warning: logging is disabled (" + e.getMessage() + ")");
+        }
+    }
 
     private static int readInt(String prompt) {
         while (true) {
@@ -35,15 +72,22 @@ public class Main {
         System.out.println("6. Return a book");
         System.out.println("7. Search books");
         System.out.println("8. Show issued books");
+        System.out.println("9. Backup data");
         System.out.println("0. Exit");
     }
 
     public static void main(String[] args) {
+        String dataFolder = setting("LIBRARY_DATA_DIR", "data");
+        setupLogging(setting("LIBRARY_LOG_DIR", "logs"));
+        System.out.println("Library Management System v" + VERSION);
+        LOG.info("Application started (version " + VERSION + ", data folder: " + dataFolder + ")");
+
         LibraryService library;
         try {
-            library = new LibraryService(new DataStore("data"));
+            library = new LibraryService(new DataStore(dataFolder));
         } catch (LibraryException e) {
             System.out.println("Error: " + e.getMessage());
+            LOG.severe("Application could not start: " + e.getMessage());
             return;
         }
 
@@ -94,6 +138,9 @@ public class Main {
                                     + " | Issued on: " + r.getIssueDate());
                         }
                         break;
+                    case 9:
+                        System.out.println("Backup saved in: " + library.backupData());
+                        break;
                     case 0:
                         System.out.println("Goodbye!");
                         break;
@@ -102,7 +149,9 @@ public class Main {
                 }
             } catch (LibraryException e) {
                 System.out.println("Error: " + e.getMessage());
+                LOG.warning("Request rejected: " + e.getMessage());
             }
         } while (choice != 0);
+        LOG.info("Application stopped");
     }
 }

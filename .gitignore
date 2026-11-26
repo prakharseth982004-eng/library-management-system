@@ -1,2 +1,7 @@
 *.class
+out/
+*.jar
 data/
+logs/
+staging-data/
+staging-logs/

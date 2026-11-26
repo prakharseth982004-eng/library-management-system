@@ -1,14 +1,23 @@
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /** All the business rules of the library live in this class. */
 public class LibraryService {
     public static final int LOAN_DAYS = 7;
     public static final int FINE_PER_DAY = 2;
     public static final int MAX_BOOKS_PER_MEMBER = 3;
+
+    private static final Logger LOG = Logger.getLogger("library");
+
+    static {
+        // No console output; Main adds a log file handler when the program runs.
+        LOG.setUseParentHandlers(false);
+    }
 
     private final DataStore store;
     private final List<Book> books;
@@ -21,9 +30,13 @@ public class LibraryService {
             this.books = store.loadBooks();
             this.members = store.loadMembers();
             this.records = store.loadRecords();
+            LOG.info("Loaded " + books.size() + " books, " + members.size() + " members, "
+                    + records.size() + " records");
         } catch (IOException e) {
+            LOG.severe("Could not load saved data: " + e.getMessage());
             throw new LibraryException("Could not load saved data: " + e.getMessage());
         } catch (RuntimeException e) {
+            LOG.severe("Saved data files are damaged: " + e);
             throw new LibraryException("Saved data files are damaged or in a wrong format. "
                     + "Please fix or delete the data folder.");
         }
@@ -61,8 +74,10 @@ public class LibraryService {
         try {
             store.appendBook(book);
         } catch (IOException e) {
+            LOG.severe("Could not save book: " + e.getMessage());
             throw new LibraryException("Could not save data: " + e.getMessage());
         }
+        LOG.info("Book added: id " + book.getId() + " \"" + book.getTitle() + "\"");
         return book;
     }
 
@@ -77,8 +92,10 @@ public class LibraryService {
         try {
             store.appendMember(member);
         } catch (IOException e) {
+            LOG.severe("Could not save member: " + e.getMessage());
             throw new LibraryException("Could not save data: " + e.getMessage());
         }
+        LOG.info("Member added: id " + member.getId() + " " + member.getName());
         return member;
     }
 
@@ -118,6 +135,7 @@ public class LibraryService {
         records.add(new IssueRecord(bookId, memberId, date, null));
         saveBooks();
         saveRecords();
+        LOG.info("Book " + bookId + " issued to member " + memberId + " on " + date);
     }
 
     /** Returns the fine to pay (0 if the book is returned on time). */
@@ -135,6 +153,7 @@ public class LibraryService {
                 long lateDays = Math.max(0, daysKept - LOAN_DAYS);
                 saveBooks();
                 saveRecords();
+                LOG.info("Book " + bookId + " returned on " + date + ", fine Rs " + (lateDays * FINE_PER_DAY));
                 return (int) (lateDays * FINE_PER_DAY);
             }
         }
@@ -150,6 +169,18 @@ public class LibraryService {
             }
         }
         return result;
+    }
+
+    /** Makes a copy of all data files. Returns the folder where the backup was saved. */
+    public String backupData() throws LibraryException {
+        try {
+            Path folder = store.backup();
+            LOG.info("Backup created in " + folder);
+            return folder.toString();
+        } catch (IOException e) {
+            LOG.severe("Backup failed: " + e.getMessage());
+            throw new LibraryException("Could not create backup: " + e.getMessage());
+        }
     }
 
     public List<Book> getBooks() { return books; }

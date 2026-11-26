@@ -121,6 +121,21 @@ public class LibraryTests {
         check("E5 title with | is saved and loaded correctly",
                 newLibrary(pipe).getBooks().get(0).getTitle().equals("Title With Pipes"));
 
+        System.out.println("\n=== OPERATIONS TESTS (BACKUP AND RESTORE) ===");
+        Path ops = Files.createTempDirectory("lib-ops");
+        LibraryService os = newLibrary(ops);
+        os.addBook("Backup Book", "Tester");
+        os.addMember("Backup Member");
+        os.issueBook(1, 1, day);
+        Path backupFolder = java.nio.file.Paths.get(os.backupData());
+        check("D1 backup creates copies of all data files", Files.exists(backupFolder.resolve("books.txt"))
+                && Files.exists(backupFolder.resolve("members.txt")) && Files.exists(backupFolder.resolve("records.txt")));
+        os.addBook("Added after backup", "Tester");
+        LibraryService restored = newLibrary(backupFolder);
+        check("D2 a backup can be restored and has the data from backup time",
+                restored.getBooks().size() == 1 && restored.getMembers().size() == 1
+                        && restored.getActiveRecords().size() == 1);
+
         System.out.println("\n=== PERFORMANCE TEST ===");
         Path perf = Files.createTempDirectory("lib-perf");
         LibraryService ls = newLibrary(perf);
